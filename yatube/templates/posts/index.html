@@ -1,18 +1,16 @@
-<!DOCTYPE html> <!-- Используется html 5 версии -->
 {% extends 'base.html' %}
 {% block content %}
-<h1>Главная страница</h1>
 <html lang="ru"> <!-- Язык сайта - русский -->
   <head>
-    <title>{{ title }}</title>
+    <title>
+    </title>
   </head>
   <body>
     <header>
+      <title></title>
     </header>
-    <main> 
-      <!-- класс py-5 создает отступы сверху и снизу блока -->
+    <main>
       <div class="container py-5">
-        <h1></h1>
         <article>
           {% for post in posts %}
             <ul>
@@ -30,13 +28,9 @@
             {% if not forloop.last %}<hr>{% endif %}
           {% endfor %}
         </article>
-        <!-- под последним постом нет линии -->
       </div>  
     </main>
-    <!-- Использованы классы бустрапа: -->
-    <!-- border-top: создаёт тонкую линию сверху блока -->
-    <!-- text-center: выравнивает текстовые блоки внутри блока по центру -->
-    <!-- py-3: контент внутри размещается с отступом сверху и снизу -->         
+
     <footer>
     </footer>
   </body>

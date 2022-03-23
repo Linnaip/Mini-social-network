@@ -1,5 +1,4 @@
 from django.conf import settings as s
-
 from django.shortcuts import render, get_object_or_404
 
 from .models import Group, Post

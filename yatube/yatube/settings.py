@@ -14,17 +14,19 @@ SECRET_KEY = 'i@d^dvf97)%t!!r_5uny#a^ec8ldr$4myryrfu4(ou&tje+%x)'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
 # EmailBackend
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 # CONSTANT
 LOGIN_URL = 'users:login'
-LOGIN_REDIRECT_URL = 'posts:index'
+LOGIN_REDIRECT_URL = 'posts:posts'
 CONSTANT = 10
 # Application definition
 
 INSTALLED_APPS = [
+    'about.apps.AboutConfig',
     'core.apps.CoreConfig',
     'users.apps.UsersConfig',
     'posts.apps.PostsConfig',
@@ -60,6 +62,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.year.year',
             ],
         },
     },

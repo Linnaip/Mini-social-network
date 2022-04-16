@@ -86,7 +86,7 @@ def post_edit(request, post_id):
         'post': post,
     }
     if request.method == 'GET':
-        if request.user is not post.author:
+        if request.user != post.author:
             return redirect('posts:post_detail', post_id=post.id)
     if request.method == 'POST':
         if form.is_valid():

@@ -1,14 +1,10 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.conf import settings as s
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 
 from .forms import PostForm
-from .models import Group, Post
-
-
-User = get_user_model()
+from .models import Group, Post, User
 
 
 def index(request):
@@ -55,7 +51,15 @@ def profile(request, username):
 
 
 def post_detail(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    author = post.author
+    count_list = Post.objects.filter(author=author).count()
+    form = PostForm()
     context = {
+        'author': author,
+        'post': post,
+        'count_list': count_list,
+        'form': form,
     }
     return render(request, 'posts/post_detail.html', context)
 
@@ -67,5 +71,25 @@ def post_create(request):
         post = form.save(commit=False)
         post.author = request.user
         post.save()
-        return redirect('posts:profile')
-    return render(request, 'posts/create_post.html', {'form': form})
+        return redirect('posts:profile', post.author)
+    context = {
+        'form': form,
+    }
+    return render(request, 'posts/create_post.html', context)
+
+
+def post_edit(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    form = PostForm(request.POST or None, instance=post)
+    context = {
+        'form': form,
+        'post': post,
+    }
+    if request.method == 'GET':
+        if request.user is not post.author:
+            return redirect('posts:post_detail', post_id=post.id)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+        return redirect('posts:post_detail', post_id=post.id)
+    return render(request, 'posts/create_post.html', context)

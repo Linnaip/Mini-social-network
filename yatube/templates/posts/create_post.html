@@ -15,11 +15,19 @@
                         </div>
                     {% endfor %}
 
-                <form method="post" action={% if post %}"{% url 'posts:post_edit' post_id=post.id %}"{% else %}"{% url 'posts:post_create' %}"{% endif %}>
+                <form method="post" action={% if post %}
+                "{% url 'posts:post_edit' post_id=post.id %}"
+                {% else %}"
+                {% url 'posts:post_create' %}"
+                {% endif %}>
                     {% csrf_token %}
 
                     {% for field in form %}
-                        <div class="form-group row" aria-required={% if field.field.required %}"true"{% else %}"false"{% endif %}>
+                        <div class="form-group row" aria-required=
+                                {% if field.field.required %}"true"
+                                {% else %}
+                                "false"
+                                {% endif %}>
                                 <label for="{{ field.id_for_label }}" class="col-md-4 col-form-label text-md-right">
                                   {{ field.label }}
                                   {% if field.field.required %}
@@ -33,8 +41,6 @@
                                 </div>
                         </div>
                     {% endfor %}
-
-
                     <div class="col-md-6 offset-md-4">
                             <button type="submit" class="btn btn-primary">
                               {% if is_edit %}

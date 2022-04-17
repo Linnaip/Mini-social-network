@@ -5,41 +5,42 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from .forms import PostForm
 from .models import Group, Post, User
+from .utils import get_page_context
 
 
 def index(request):
     """Главная страница."""
     posts_list = Post.objects.all()
-    paginator = Paginator(posts_list, s.CONSTANT)
+    paginator = get_page_context(posts_list)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {
         'page_obj': page_obj,
-        'post_list': posts_list,
         'paginator': paginator
     }
     return render(request, 'posts/index.html', context)
 
 
 def group_posts(request, slug):
+    """Выводит шаблон с группами постов."""
     group = get_object_or_404(Group, slug=slug)
-    post_list = group.posts.all()
-    paginator = Paginator(post_list, s.CONSTANT)
+    posts_list = group.posts.all()
+    paginator = get_page_context(posts_list)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {
         'group': group,
         'page_obj': page_obj,
-        'paginator': paginator
     }
     return render(request, 'posts/group_list.html', context)
 
 
 def profile(request, username):
+    """Выводит шаблон профайла пользователя."""
     author = get_object_or_404(User, username=username)
-    post_list = Post.objects.filter(author=author).order_by('-pub_date')
+    posts_list = Post.objects.filter(author=author).order_by('-pub_date')
     count_list = Post.objects.filter(author=author).count()
-    paginator = Paginator(post_list, s.CONSTANT)
+    paginator = get_page_context(posts_list)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {
@@ -51,21 +52,23 @@ def profile(request, username):
 
 
 def post_detail(request, post_id):
+    """Выводит шаблон поста пользователя."""
     post = get_object_or_404(Post, id=post_id)
+    request_user = request.user
     author = post.author
     count_list = Post.objects.filter(author=author).count()
-    form = PostForm()
     context = {
         'author': author,
         'post': post,
         'count_list': count_list,
-        'form': form,
+        'request_user': request_user,
     }
     return render(request, 'posts/post_detail.html', context)
 
 
 @login_required
 def post_create(request):
+    """Выводит шаблон создания поста."""
     form = PostForm(request.POST or None)
     if form.is_valid():
         post = form.save(commit=False)
@@ -78,7 +81,9 @@ def post_create(request):
     return render(request, 'posts/create_post.html', context)
 
 
+@login_required
 def post_edit(request, post_id):
+    """Выводит шаблон редактирования поста."""
     post = get_object_or_404(Post, id=post_id)
     form = PostForm(request.POST or None, instance=post)
     context = {

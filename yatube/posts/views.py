@@ -9,12 +9,9 @@ from .utils import get_page_context
 def index(request):
     """Главная страница."""
     posts_list = Post.objects.all()
-    paginator = get_page_context(posts_list)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = get_page_context(request, posts_list)
     context = {
         'page_obj': page_obj,
-        'paginator': paginator
     }
     return render(request, 'posts/index.html', context)
 
@@ -23,9 +20,7 @@ def group_posts(request, slug):
     """Выводит шаблон с группами постов."""
     group = get_object_or_404(Group, slug=slug)
     posts_list = group.posts.all()
-    paginator = get_page_context(posts_list)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = get_page_context(request, posts_list)
     context = {
         'group': group,
         'page_obj': page_obj,
@@ -38,9 +33,7 @@ def profile(request, username):
     author = get_object_or_404(User, username=username)
     posts_list = Post.objects.filter(author=author).order_by('-pub_date')
     count_list = Post.objects.filter(author=author).count()
-    paginator = get_page_context(posts_list)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = get_page_context(request, posts_list)
     context = {
         'author': author,
         'page_obj': page_obj,

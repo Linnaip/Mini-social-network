@@ -45,14 +45,12 @@ def profile(request, username):
 def post_detail(request, post_id):
     """Выводит шаблон поста пользователя."""
     post = get_object_or_404(Post, id=post_id)
-    request_user = request.user
     author = post.author
     count_list = Post.objects.filter(author=author).count()
     context = {
         'author': author,
         'post': post,
         'count_list': count_list,
-        'request_user': request_user,
     }
     return render(request, 'posts/post_detail.html', context)
 

@@ -32,11 +32,15 @@ class PostPagesTests(TestCase):
         """URL-адрес использует соответствующий шаблон."""
         templates_pages_names = {
             reverse('posts:posts'): 'posts/index.html',
-            reverse('posts:group_posts', kwargs={'slug': 'test-slug'}): 'posts/group_list.html',
-            reverse('posts:profile', kwargs={'username': f'{self.user}'}): 'posts/profile.html',
-            reverse('posts:post_detail', kwargs={'post_id': f'{self.post.pk}'}): 'posts/post_detail.html',
+            reverse('posts:group_posts',
+                    kwargs={'slug': 'test-slug'}): 'posts/group_list.html',
+            reverse('posts:profile',
+                    kwargs={'username': f'{self.user}'}): 'posts/profile.html',
+            reverse('posts:post_detail',
+                    kwargs={'post_id': f'{self.post.pk}'}): 'posts/post_detail.html',
             reverse('posts:post_create'): 'posts/create_post.html',
-            reverse('posts:post_edit', kwargs={'post_id': f'{self.post.pk}'}): 'posts/create_post.html'
+            reverse('posts:post_edit',
+                    kwargs={'post_id': f'{self.post.pk}'}): 'posts/create_post.html'
         }
         for reverse_name, template in templates_pages_names.items():
             with self.subTest(reverse_name=reverse_name):
@@ -98,9 +102,10 @@ class PostPagesTests(TestCase):
 
     def test_post_create_edit_page_correct_context(self):
         """Шаблон post_edit сформирован с правильны контекстом."""
-        response = self.authorized_client.get(reverse
-                                              ('posts:post_edit',
-                                               kwargs={'post_id': f'{self.post.pk}'}))
+        response = self.authorized_client.get(
+            reverse('posts:post_edit',
+                    kwargs={'post_id': f'{self.post.pk}'})
+        )
         ctx = response.context
         self.assertEqual(ctx['post'].pk, self.post.pk)
         form_fields = {
@@ -149,8 +154,10 @@ class PaginatorViewsTest(TestCase):
     def test_first_page_contains_ten_records(self):
         url_names = {
             reverse('posts:posts'): 'posts/index.html',
-            reverse('posts:group_posts', kwargs={'slug': 'test-slug'}): 'posts/group_list.html',
-            reverse('posts:profile', kwargs={'username': f'{self.user}'}): 'posts/profile.html',
+            reverse('posts:group_posts',
+                    kwargs={'slug': 'test-slug'}): 'posts/group_list.html',
+            reverse('posts:profile',
+                    kwargs={'username': f'{self.user}'}): 'posts/profile.html',
         }
         for url in url_names.keys():
             response = self.client.get(url)
@@ -160,9 +167,11 @@ class PaginatorViewsTest(TestCase):
         url_names = {
             reverse('posts:posts') + '?page=2':
                 'posts/index.html',
-            reverse('posts:group_posts', kwargs={'slug': 'test-slug'}) + '?page=2':
+            reverse('posts:group_posts',
+                    kwargs={'slug': 'test-slug'}) + '?page=2':
                 'posts/group_list.html',
-            reverse('posts:profile', kwargs={'username': f'{self.user}'}) + '?page=2':
+            reverse('posts:profile',
+                    kwargs={'username': f'{self.user}'}) + '?page=2':
                 'posts/profile.html',
         }
         for url in url_names.keys():

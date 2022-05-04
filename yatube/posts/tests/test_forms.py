@@ -41,8 +41,9 @@ class PostViewTest(TestCase):
             data=form_data,
         )
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertRedirects(response, reverse('posts:profile',
-                                               kwargs={'username': f'{self.user}'}))
+        self.assertRedirects(response,
+                             reverse('posts:profile', kwargs=
+                             {'username': f'{self.user}'}))
 
     def test_authorized_edit_post(self):
         form_data = {

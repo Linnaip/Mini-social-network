@@ -15,7 +15,7 @@
                         </div>
                     {% endfor %}
 
-                <form method="post" action={% if post %}
+                <form method="post" enctype="multipart/form-data" action={% if post %}
                 "{% url 'posts:post_edit' post_id=post.id %}"
                 {% else %}"
                 {% url 'posts:post_create' %}"

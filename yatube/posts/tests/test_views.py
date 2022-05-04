@@ -38,11 +38,13 @@ class PostPagesTests(TestCase):
                     kwargs={'username': f'{self.user}'}): 'posts/profile.html',
             reverse('posts:post_detail',
                     kwargs={
-                        'post_id': f'{self.post.pk}'}): 'posts/post_detail.html',
+                        'post_id':
+                            f'{self.post.pk}'}): 'posts/post_detail.html',
             reverse('posts:post_create'): 'posts/create_post.html',
             reverse('posts:post_edit',
                     kwargs={
-                        'post_id': f'{self.post.pk}'}): 'posts/create_post.html'
+                        'post_id':
+                            f'{self.post.pk}'}):'posts/create_post.html'
         }
         for reverse_name, template in templates_pages_names.items():
             with self.subTest(reverse_name=reverse_name):

@@ -37,10 +37,12 @@ class PostPagesTests(TestCase):
             reverse('posts:profile',
                     kwargs={'username': f'{self.user}'}): 'posts/profile.html',
             reverse('posts:post_detail',
-                    kwargs={'post_id': f'{self.post.pk}'}): 'posts/post_detail.html',
+                    kwargs={
+                        'post_id': f'{self.post.pk}'}): 'posts/post_detail.html',
             reverse('posts:post_create'): 'posts/create_post.html',
             reverse('posts:post_edit',
-                    kwargs={'post_id': f'{self.post.pk}'}): 'posts/create_post.html'
+                    kwargs={
+                        'post_id': f'{self.post.pk}'}): 'posts/create_post.html'
         }
         for reverse_name, template in templates_pages_names.items():
             with self.subTest(reverse_name=reverse_name):
@@ -71,9 +73,9 @@ class PostPagesTests(TestCase):
 
     def test_profile_page_show_correct_context(self):
         """Шаблон profile сформирован с правильны контекстом."""
-        response = self.authorized_client.get(reverse
-                                              ('posts:profile',
-                                               kwargs={'username': f'{self.user}'}))
+        response = self.authorized_client.get(reverse(
+            'posts:profile', kwargs={'username': f'{self.user}'})
+        )
         ctx = response.context
         first_object = ctx['page_obj'][0]
         post_text_0 = first_object.text
@@ -82,9 +84,9 @@ class PostPagesTests(TestCase):
 
     def test_post_detail_page_show_correct_context(self):
         """Шаблон post_detail сформирован с правильны контекстом."""
-        response = self.authorized_client.get(reverse
-                                              ('posts:post_detail',
-                                               kwargs={'post_id': f'{self.post.pk}'}))
+        response = self.authorized_client.get(reverse(
+            'posts:post_detail', kwargs={'post_id': f'{self.post.pk}'})
+        )
         ctx = response.context
         self.assertEqual(ctx['author'].pk, self.user.pk)
         self.assertEqual(ctx['post'].pk, self.post.pk)

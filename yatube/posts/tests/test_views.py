@@ -110,7 +110,24 @@ class PostPagesTests(TestCase):
             with self.subTest(value=value):
                 form_field = response.context['form'].fields[value]
                 self.assertIsInstance(form_field, expected)
-    #доделать 3 задание 'Если не выбирать группу'
+
+    def test_additional_verification_create_post(self):
+        """Дополнительная проверка при создании поста."""
+        ctx = [
+            reverse('posts:posts'),
+            reverse('posts:group_posts', kwargs={'slug': 'test-slug'}),
+            reverse('posts:profile', kwargs={'username': f'{self.user}'})
+        ]
+        post_2 = Post.objects.create(
+            author=self.user,
+            text='Данные 2 текста',
+            group=self.group,
+        )
+        for reverse_name in ctx:
+            with self.subTest(reverse_name=ctx):
+                response = self.authorized_client.get(reverse_name)
+                self.assertEqual(post_2, response.context['page_obj'][0])
+
 
 class PaginatorViewsTest(TestCase):
     @classmethod
@@ -124,9 +141,9 @@ class PaginatorViewsTest(TestCase):
         )
         for i in range(15):
             Post.objects.create(
-            author=cls.user,
-            text=f'Тестовый текст поста {i}',
-            group=cls.group
+                author=cls.user,
+                text=f'Тестовый текст поста {i}',
+                group=cls.group
             )
 
     def test_first_page_contains_ten_records(self):

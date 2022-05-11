@@ -25,3 +25,8 @@ class PostModelTest(TestCase):
         post = PostModelTest.post
         result = post.text[:15]
         self.assertEqual(str(post), result, 'Проверь работу models постов')
+
+    def test_models_group_have_correct_names(self):
+        group = PostModelTest.group
+        result = group.title
+        self.assertEqual(str(group), result, 'Проверь работу group models')

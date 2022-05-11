@@ -32,7 +32,7 @@ class PostPagesTests(TestCase):
         """URL-адрес использует соответствующий шаблон."""
         templates_pages_names = {
             reverse('posts:posts'): 'posts/index.html',
-            reverse('posts:group_posts', kwargs={'slug': 'test-slug'}): 'posts/group_list.html',
+            reverse('posts:group_posts', kwargs={'slug': f'{self.group.slug}'}): 'posts/group_list.html',
             reverse('posts:profile', kwargs={'username': f'{self.user}'}): 'posts/profile.html',
             reverse('posts:post_detail', kwargs={'post_id': f'{self.post.pk}'}): 'posts/post_detail.html',
             reverse('posts:post_create'): 'posts/create_post.html',
@@ -54,9 +54,9 @@ class PostPagesTests(TestCase):
 
     def test_group_pages_show_correct_context(self):
         """Шаблон group_list сформирован с правильны контекстом."""
-        response = self.authorized_client.get(reverse
-                                              ('posts:group_posts',
-                                               kwargs={'slug': 'test-slug'}))
+        response = self.authorized_client.get(
+            reverse('posts:group_posts',
+                    kwargs={'slug': f'{self.group.slug}'}))
         first_object = response.context["group"]
         group_title_0 = first_object.title
         group_slug_0 = first_object.slug
@@ -139,7 +139,8 @@ class PaginatorViewsTest(TestCase):
             slug='test-slug',
             description='Тестовое описание',
         )
-        for i in range(15):
+        num = 15
+        for i in range(num):
             Post.objects.create(
                 author=cls.user,
                 text=f'Тестовый текст поста {i}',

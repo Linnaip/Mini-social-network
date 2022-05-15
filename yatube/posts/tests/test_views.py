@@ -35,7 +35,9 @@ class PostPagesTests(TestCase):
         cls.user = User.objects.create_user(username='auth')
         cls.post = Post.objects.create(
             author=cls.user,
-            text='Тестовый текст поста', )
+            text='Тестовый текст поста',
+            image=cls.uploaded,
+        )
 
         cls.group = Group.objects.create(
             title='Тестовый заголовок',
@@ -89,15 +91,17 @@ class PostPagesTests(TestCase):
         response = self.authorized_client.get(
             reverse('posts:group_posts',
                     kwargs={'slug': f'{self.group.slug}'}))
-        first_object = response.context["group"]
+        first_object = response.context['group']
         group_id_0 = first_object.id
         group_title_0 = first_object.title
         group_slug_0 = first_object.slug
         group_description_0 = first_object.description
+        post_image_0 = Post.objects.first().image
         self.assertEqual(group_id_0, self.group.pk)
         self.assertEqual(group_title_0, self.group.title)
         self.assertEqual(group_slug_0, self.group.slug)
         self.assertEqual(group_description_0, self.group.description)
+        self.assertEqual(post_image_0, 'posts/small.gif')
 
     def test_profile_page_show_correct_context(self):
         """Шаблон profile сформирован с правильны контекстом."""
@@ -112,6 +116,7 @@ class PostPagesTests(TestCase):
             'posts:post_detail', kwargs={'post_id': f'{self.post.pk}'})
         )
         ctx = response.context
+        self.assertEqual(ctx['post'].image, 'posts/small.gif')
         self.assertEqual(ctx['author'].pk, self.user.pk)
         self.assertEqual(ctx['post'].pk, self.post.pk)
 
@@ -167,9 +172,11 @@ class PostPagesTests(TestCase):
         post_id_0 = first_object.id
         post_text_0 = first_object.text
         post_author_0 = first_object.author.username
+        post_image_0 = first_object.image
         self.assertEqual(post_author_0, f'{self.user}')
         self.assertEqual(post_text_0, self.post.text)
         self.assertEqual(post_id_0, self.post.pk)
+        self.assertEqual(post_image_0, 'posts/small.gif')
 
 
 class PaginatorViewsTest(TestCase):

@@ -8,7 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from ..models import Post, Group
+from ..models import Post, Group, Comment
 
 User = get_user_model()
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -231,3 +231,43 @@ class PaginatorViewsTest(TestCase):
             response = self.client.get(url)
             self.assertEqual(len(
                 response.context['page_obj']), second_page)
+
+
+class CommentsViewsTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='auth')
+        cls.post = Post.objects.create(
+            author=cls.user,
+            text='Тестовый текст поста'
+        )
+
+        cls.group = Group.objects.create(
+            title='Тестовый заголовок',
+            slug='test-slug',
+            description='Тестовое описание',
+        )
+
+    def setUp(self):
+        self.authorized_client = Client()
+        self.user = User.objects.create_user(username='Linnaip')
+        self.authorized_client.force_login(self.user)
+
+    def test_add_comment(self):
+        post_create_0 = Post.objects.order_by('-id')[0]
+        selection = Comment.objects.filter(
+            post=post_create_0.id).last()
+        comment_count = Comment.objects.filter(post=self.post.pk).count()
+        form_data = {
+            'text': 'test comment'
+        }
+        response = self.authorized_client.post(reverse('posts:add_comment',
+                                                       kwargs={'post_id': f'{self.post.pk}'}),
+                                               data=form_data,
+                                               follow=True)
+        self.assertEqual(Comment.objects.filter(post=self.post.pk).count(), comment_count)
+        self.assertRedirects(response, reverse(
+            'posts:post_detail', kwargs={
+                        'post_id': f'{self.post.pk}'}))
+        self.assertEqual(selection.text, form_data['text'])

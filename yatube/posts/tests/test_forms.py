@@ -48,36 +48,44 @@ class PostViewTest(TestCase):
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
-        self.author = User.objects.create_user(username='HasNoName')
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
     def test_create_post_page(self):
+        """Проверка post_create на создание поста."""
         posts_count = Post.objects.count()
         form_data = {
-            'text': 'Тестовый текс',
+            'text': self.post.text,
             'group': self.group.id
         }
         response = self.authorized_client.post(
             reverse('posts:post_create'),
             data=form_data,
+            follow=True
         )
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertRedirects(response, reverse('posts:profile',
-                                               kwargs={'username': self.user}))
+        self.assertRedirects(response,
+                             reverse('posts:profile',
+                                     kwargs={'username': self.user}))
+        selection = Post.objects.latest('pk')
+        self.assertEqual(selection.text, self.post.text)
+        self.assertEqual(selection.author, self.post.author)
+        self.assertEqual(selection.group, self.group)
 
-    def test_authorized_edit_post(self):
+    def test_edit_post_page(self):
+        """Проверка post_edit на изменение поста."""
         form_data = {
             'text': 'Измененный текст'
         }
         response = self.authorized_client.post(
             reverse('posts:post_edit', kwargs={'post_id': self.post.pk}),
             data=form_data,
-            follow=True,
+            follow=True
         )
-        post_2 = Post.objects.get(id=self.post.pk)
+        selection = Post.objects.get(id=self.post.pk)
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertEqual(post_2.text, 'Измененный текст')
+        self.assertEqual(selection.text, form_data['text'])
+        self.assertEqual(selection.author, self.post.author)
 
     def test_create_post_with_image_page(self):
         """Валидная форма создает запись с картинкой."""

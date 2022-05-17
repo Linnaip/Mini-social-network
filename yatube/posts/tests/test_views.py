@@ -263,8 +263,10 @@ class CommentsViewsTest(TestCase):
                                                        kwargs={'post_id': f'{self.post.pk}'}),
                                                data=form_data,
                                                follow=True)
-        #Нужно доделать
+        #??????
+        selection = Comment.objects.filter(post=self.post.pk)
         self.assertEqual(Comment.objects.filter(post=self.post.pk).count(), comment_count)
         self.assertRedirects(response, reverse(
             'posts:post_detail', kwargs={
                         'post_id': f'{self.post.pk}'}))
+        self.assertEqual(selection, 'test comment')

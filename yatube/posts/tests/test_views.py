@@ -255,9 +255,6 @@ class CommentsViewsTest(TestCase):
         self.authorized_client.force_login(self.user)
 
     def test_add_comment(self):
-        post_create_0 = Post.objects.order_by('-id')[0]
-        selection = Comment.objects.filter(
-            post=post_create_0.id).last()
         comment_count = Comment.objects.filter(post=self.post.pk).count()
         form_data = {
             'text': 'test comment'
@@ -266,8 +263,8 @@ class CommentsViewsTest(TestCase):
                                                        kwargs={'post_id': f'{self.post.pk}'}),
                                                data=form_data,
                                                follow=True)
+        #Нужно доделать
         self.assertEqual(Comment.objects.filter(post=self.post.pk).count(), comment_count)
         self.assertRedirects(response, reverse(
             'posts:post_detail', kwargs={
                         'post_id': f'{self.post.pk}'}))
-        self.assertEqual(selection.text, form_data['text'])

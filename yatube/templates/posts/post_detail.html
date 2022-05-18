@@ -22,17 +22,17 @@
               Всего постов автора:<span >{{ count_list }}</span>
             </li>
             <li class="list-group-item">
-              <a href="{% url 'posts:profile' username=author %}">
+              <a href=>
                 все посты пользователя
               </a>
             </li>
-            {% if user == post.author %}
             <li class="list-group-item">
+              {% if author == request_user %}
               <a href="{% url 'posts:post_edit' post_id=post.id %}">
                 Редактировать
               </a>
+              {% endif %}
             </li>
-            {% endif %}
           </ul>
         </aside>
         <article class="col-12 col-md-9">

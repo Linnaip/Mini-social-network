@@ -25,7 +25,6 @@ class PostURLTests(TestCase):
 
     def setUp(self):
         """Создает неавторизованного и авторизованного пользователя"""
-        self.guest_client = Client()
         self.author = User.objects.create_user(username='HasNoName')
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
@@ -34,13 +33,13 @@ class PostURLTests(TestCase):
         """Страница index и group_list доступны любому пользователю."""
         url_names = (
             '/',
-            '/group/test-slug/',
+            f'/group/{self.group.slug}/',
             f'/profile/{self.user}/',
             f'/posts/{self.post.pk}/',
         )
         for url in url_names:
             with self.subTest():
-                response = self.guest_client.get(url)
+                response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_urls_authorized_client(self):
@@ -59,7 +58,7 @@ class PostURLTests(TestCase):
         """URL-адрес использует соответствующий шаблон."""
         templates_url_names = {
             '/': 'posts/index.html',
-            '/group/test-slug/': 'posts/group_list.html',
+            f'/group/{self.group.slug}/': 'posts/group_list.html',
             f'/profile/{self.user}/': 'posts/profile.html',
             f'/posts/{self.post.pk}/': 'posts/post_detail.html',
             '/create/': 'posts/create_post.html',
@@ -71,5 +70,5 @@ class PostURLTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_page_404(self):
-        response = self.guest_client.get('/unknown-page/')
+        response = self.client.get('/unknown-page/')
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)

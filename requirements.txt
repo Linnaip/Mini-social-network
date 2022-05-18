@@ -32,3 +32,4 @@ wcwidth==0.1.8            # via pytest
 zipp==2.2.0               # via importlib-metadata
 coverage==6.3.2
 pillow==9.1.0
+thumbnail==1.5

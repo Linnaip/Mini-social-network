@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django.core.cache import cache
 
 from ..models import Post, Group, Comment
 
@@ -255,6 +256,7 @@ class CommentsViewsTest(TestCase):
         self.authorized_client.force_login(self.user)
 
     def test_add_comment(self):
+        """Тестирование добавления комментария к посту."""
         comment_count = Comment.objects.filter(post=self.post.pk).count()
         form_data = {
             'text': 'test comment'
@@ -263,10 +265,22 @@ class CommentsViewsTest(TestCase):
                                                        kwargs={'post_id': f'{self.post.pk}'}),
                                                data=form_data,
                                                follow=True)
-        #??????
-        selection = Comment.objects.filter(post=self.post.pk)
-        self.assertEqual(Comment.objects.filter(post=self.post.pk).count(), comment_count)
+        selection = Comment.objects.get(post=self.post.pk).text
+        self.assertEqual(Comment.objects.filter(post=self.post.pk).count(), comment_count + 1)
         self.assertRedirects(response, reverse(
             'posts:post_detail', kwargs={
                         'post_id': f'{self.post.pk}'}))
-        self.assertEqual(selection, 'test comment')
+        self.assertEqual(selection, form_data['text'])
+
+    def test_cache_index(self):#Доделать
+        """Тестирование хеширования Главной страницы."""
+        response_1 = self.authorized_client.get(reverse('posts:posts')).content
+        Post.objects.create(
+            text='test_new_post',
+            author=self.user,
+        )
+        response_2 = self.authorized_client.get(reverse('posts:posts')).content
+        self.assertEqual(response_2, response_1)
+        cache.clear()
+        response_3 = self.authorized_client.get(reverse('posts:posts')).content
+        self.assertNotEqual(response_2, response_3)

@@ -9,7 +9,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.core.cache import cache
 
-from ..models import Post, Group, Comment
+from ..models import Post, Group, Comment, Follow
 
 User = get_user_model()
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -272,7 +272,7 @@ class CommentsViewsTest(TestCase):
                         'post_id': f'{self.post.pk}'}))
         self.assertEqual(selection, form_data['text'])
 
-    def test_cache_index(self):#Доделать
+    def test_cache_index(self):
         """Тестирование хеширования Главной страницы."""
         response_1 = self.authorized_client.get(reverse('posts:posts')).content
         Post.objects.create(
@@ -284,3 +284,46 @@ class CommentsViewsTest(TestCase):
         cache.clear()
         response_3 = self.authorized_client.get(reverse('posts:posts')).content
         self.assertNotEqual(response_2, response_3)
+
+
+class FollowViewsTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='auth')
+        cls.user_follower = User.objects.create_user(username='follower')
+        cls.post = Post.objects.create(
+            author=cls.user,
+            text='Тестовый текст поста',
+        )
+
+    def setUp(self):
+        self.authorized_client = Client()
+        self.authorized_client.force_login(self.user_follower)
+
+    def test_follow_index(self):
+        """Проверяет работу страницы подписок на авторов."""
+        Follow.objects.create(user=self.user_follower,
+                              author=self.user)
+        response = self.authorized_client.get(reverse('posts:follow_index'))
+        post_text_0 = response.context["page_obj"][0]
+        self.assertEqual(post_text_0.text, self.post.text)
+
+    def test_profile_follow(self):
+        """Проверяет работу подписки на автора."""
+        self.authorized_client.get(
+            reverse('posts:profile_follow',
+                    kwargs={'username': self.user_follower}))
+        count = Follow.objects.all().count()
+        self.assertEqual(count, 1)
+
+    def test_profile_unfollow(self):
+        """Проверяет работу отписки от автора."""
+        self.authorized_client.get(
+            reverse('posts:profile_follow',
+                    kwargs={'username': self.user_follower}))
+        self.authorized_client.get(
+            reverse('posts:profile_unfollow',
+                    kwargs={'username': self.user_follower}))
+        count = Follow.objects.all().count()
+        self.assertEqual(count, 0)

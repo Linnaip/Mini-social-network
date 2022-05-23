@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import Client, TestCase
 
 from ..models import Group, Post
@@ -13,21 +14,22 @@ class PostURLTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='auth')
-        cls.post = Post.objects.create(
-            author=cls.user,
-            text='Тестовый текст поста', )
-
         cls.group = Group.objects.create(
             title='Тестовый заголовок',
             slug='test-slug',
             description='Тестовое описание',
         )
+        cls.post = Post.objects.create(
+            author=PostURLTests.user,
+            text='Тестовый текст поста',
+            group=PostURLTests.group
+        )
 
     def setUp(self):
         """Создает неавторизованного и авторизованного пользователя"""
-        self.author = User.objects.create_user(username='HasNoName')
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        cache.clear()
 
     def test_urls_non_authorized_client(self):
         """Страница index и group_list доступны любому пользователю."""
@@ -63,9 +65,10 @@ class PostURLTests(TestCase):
             f'/posts/{self.post.pk}/': 'posts/post_detail.html',
             '/create/': 'posts/create_post.html',
             f'/posts/{self.post.pk}/edit/': 'posts/create_post.html',
+            '/follow/': 'posts/follow.html'
         }
         for url, template in templates_url_names.items():
-            with self.subTest(address=url):
+            with self.subTest(adress=url):
                 response = self.authorized_client.get(url)
                 self.assertTemplateUsed(response, template)
 

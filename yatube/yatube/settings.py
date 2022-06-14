@@ -13,7 +13,10 @@ SECRET_KEY = 'i@d^dvf97)%t!!r_5uny#a^ec8ldr$4myryrfu4(ou&tje+%x)'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'www.linnaip.pythonanywhere.com',
+    'linnaip.pythonanywhere.com',
+]
 
 # Кэширование
 CACHES = {

@@ -15,7 +15,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-#Кэширование
+# Кэширование
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -29,6 +29,7 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = 'posts:posts'
 CONSTANT = 10
+CSRF_FAILURE_VIEW = 'core.views.csrf_failure'
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'sorl.thumbnail',
 ]
 
 MIDDLEWARE = [
@@ -122,3 +124,5 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

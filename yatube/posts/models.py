@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from core.models import CreatedModel
+
 User = get_user_model()
 
 
@@ -13,9 +15,8 @@ class Group(models.Model):
         return self.title
 
 
-class Post(models.Model):
+class Post(CreatedModel):
     text = models.TextField()
-    pub_date = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(
         Group,
         on_delete=models.SET_NULL,
@@ -67,3 +68,9 @@ class Follow(models.Model):
         on_delete=models.CASCADE,
         related_name='following'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'author'],
+                                    name='unique_following')
+        ]

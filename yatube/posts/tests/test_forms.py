@@ -12,6 +12,7 @@ from ..models import Group, Post
 
 User = get_user_model()
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+image_way = 'posts/small.gif'
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
@@ -19,19 +20,6 @@ class PostViewTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.small_gif = (
-            b'\x47\x49\x46\x38\x39\x61\x02\x00'
-            b'\x01\x00\x80\x00\x00\x00\x00\x00'
-            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
-            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
-            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
-            b'\x0A\x00\x3B'
-        )
-        cls.uploaded = SimpleUploadedFile(
-            name='small.gif',
-            content=cls.small_gif,
-            content_type='image/gif'
-        )
         cls.user = User.objects.create_user(username='auth')
         cls.group = Group.objects.create(
             title='Тестовая группа',
@@ -40,7 +28,9 @@ class PostViewTest(TestCase):
         )
         cls.post = Post.objects.create(
             author=cls.user,
-            text='Тестовый текст поста', )
+            text='Тестовый текст поста',
+            group=cls.group,
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -64,13 +54,7 @@ class PostViewTest(TestCase):
             follow=True
         )
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertRedirects(response,
-                             reverse('posts:profile',
-                                     kwargs={'username': self.user}))
-        selection = Post.objects.latest('pk')
-        self.assertEqual(selection.text, self.post.text)
-        self.assertEqual(selection.author, self.post.author)
-        self.assertEqual(selection.group, self.group)
+        self.first_object(response)
 
     def test_edit_post_page(self):
         """Проверка post_edit на изменение поста."""
@@ -89,16 +73,42 @@ class PostViewTest(TestCase):
 
     def test_create_post_with_image_page(self):
         """Валидная форма создает запись с картинкой."""
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
         posts_count = Post.objects.count()
         form_data = {
             'title': self.group.title,
             'text': self.post.text,
-            'image': self.uploaded,
+            'group': self.group.pk,
+            'image': uploaded,
         }
         response = self.authorized_client.post(
             reverse('posts:post_create'),
             data=form_data,
+            follow=True
         )
+        selection = Post.objects.latest('pk')
+        self.first_object(response)
+        self.assertEqual(Post.objects.count(), posts_count + 1)
+        self.assertEqual(selection.group.title, form_data['title'])
+        self.assertEqual(selection.image, image_way)
+
+    def first_object(self, response):
+        """Шаблон create_post и create with image общие процессы."""
+        selection = Post.objects.latest('pk')
         self.assertRedirects(response, reverse('posts:profile',
                                                kwargs={'username': self.user}))
-        self.assertEqual(Post.objects.count(), posts_count + 1)
+        self.assertEqual(selection.text, self.post.text)
+        self.assertEqual(selection.author, self.user)
+        self.assertEqual(selection.group, self.group)

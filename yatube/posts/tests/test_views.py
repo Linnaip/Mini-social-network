@@ -13,6 +13,7 @@ from ..models import Post, Group, Comment, Follow
 
 User = get_user_model()
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+comment_pk = 1
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
@@ -54,6 +55,7 @@ class PostPagesTests(TestCase):
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        cache.clear()
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -256,20 +258,52 @@ class CommentsViewsTest(TestCase):
         self.authorized_client.force_login(self.user)
 
     def test_add_comment(self):
+        """Проверяет создание комментария под постом."""
         comment_count = Comment.objects.filter(post=self.post.pk).count()
         form_data = {
             'text': 'test comment'
         }
-        response = self.authorized_client.post(reverse('posts:add_comment',
-                                                       kwargs={'post_id': f'{self.post.pk}'}),
-                                               data=form_data,
-                                               follow=True)
-        selection = Comment.objects.get(post=self.post.pk).text
-        self.assertEqual(Comment.objects.filter(post=self.post.pk).count(), comment_count + 1)
+        response = self.authorized_client.post(
+            reverse('posts:add_comment',
+                    kwargs={'post_id': self.post.pk}),
+            data=form_data,
+            follow=True)
+        selection = Comment.objects.latest('pk')
+        self.assertEqual(Comment.objects.filter(
+            post=self.post.pk).count(), comment_count + 1)
         self.assertRedirects(response, reverse(
-            'posts:post_detail', kwargs={
-                        'post_id': f'{self.post.pk}'}))
-        self.assertEqual(selection, form_data['text'])
+            'posts:post_detail',
+            kwargs={'post_id': self.post.pk}))
+        self.assertEqual(selection.text, form_data['text'])
+        self.assertEqual(selection.pk, comment_pk)
+        self.assertTrue(
+            Comment.objects.filter(
+                post=self.post.pk,
+                author=self.user
+            )
+        )
+
+
+class CacheViewsTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='auth')
+        cls.post = Post.objects.create(
+            author=cls.user,
+            text='Тестовый текст поста'
+        )
+
+        cls.group = Group.objects.create(
+            title='Тестовый заголовок',
+            slug='test-slug',
+            description='Тестовое описание',
+        )
+
+    def setUp(self):
+        self.authorized_client = Client()
+        self.user = User.objects.create_user(username='Linnaip')
+        self.authorized_client.force_login(self.user)
 
     def test_cache_index(self):
         """Тестирование хеширования Главной страницы."""
@@ -303,26 +337,45 @@ class FollowViewsTests(TestCase):
     def test_follow_index(self):
         """Проверяет работу страницы подписок на авторов."""
         Follow.objects.create(user=self.user_follower,
+
                               author=self.user)
         response = self.authorized_client.get(reverse('posts:follow_index'))
-        post_text_0 = response.context["page_obj"][0]
+        post_text_0 = response.context['page_obj'][0]
+        self.assertEqual(Follow.objects.all().count(), 1)
+        self.assertEqual(post_text_0.author, self.user)
+        self.assertEqual(post_text_0.pk, self.post.pk)
         self.assertEqual(post_text_0.text, self.post.text)
+        self.assertTrue(
+            Follow.objects.filter(
+                user=self.user_follower,
+                author=self.user
+            ).exists()
+        )
 
     def test_profile_follow(self):
         """Проверяет работу подписки на автора."""
         self.authorized_client.get(
             reverse('posts:profile_follow',
-                    kwargs={'username': self.user_follower}))
-        count = Follow.objects.all().count()
-        self.assertEqual(count, 1)
+                    kwargs={'username': self.user.username}))
+        self.assertTrue(
+            Follow.objects.filter(
+                user=self.user_follower,
+                author=self.user
+            ).exists()
+        )
 
     def test_profile_unfollow(self):
         """Проверяет работу отписки от автора."""
-        self.authorized_client.get(
-            reverse('posts:profile_follow',
-                    kwargs={'username': self.user_follower}))
+        Follow.objects.create(
+            user=self.user_follower,
+            author=self.user
+        )
         self.authorized_client.get(
             reverse('posts:profile_unfollow',
-                    kwargs={'username': self.user_follower}))
-        count = Follow.objects.all().count()
-        self.assertEqual(count, 0)
+                    kwargs={'username': self.user.username}))
+        self.assertFalse(
+            Follow.objects.filter(
+                user=self.user_follower,
+                author=self.user
+            ).exists()
+        )

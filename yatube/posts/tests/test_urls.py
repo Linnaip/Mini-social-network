@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import Client, TestCase
 
 from ..models import Group, Post
@@ -25,9 +26,9 @@ class PostURLTests(TestCase):
 
     def setUp(self):
         """Создает неавторизованного и авторизованного пользователя"""
-        self.author = User.objects.create_user(username='HasNoName')
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        cache.clear()
 
     def test_urls_non_authorized_client(self):
         """Страница index и group_list доступны любому пользователю."""

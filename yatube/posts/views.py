@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.views.decorators.cache import cache_page
 
 from .forms import PostForm, CommentForm
@@ -7,10 +8,10 @@ from .models import Group, Post, Comment, User, Follow
 from .utils import get_page_context
 
 
-@cache_page(4*5)
+@cache_page(20)
 def index(request):
     """Главная страница."""
-    posts_list = Post.objects.all()
+    posts_list = Post.objects.select_related('author', 'group')
     page_obj = get_page_context(request, posts_list)
     context = {
         'page_obj': page_obj,
@@ -71,7 +72,9 @@ def post_detail(request, post_id):
 @login_required
 def post_create(request):
     """Выводит шаблон создания поста."""
-    form = PostForm(request.POST or None)
+    form = PostForm(request.POST or None,
+                    files=request.FILES or None
+                    )
     if form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
@@ -130,11 +133,9 @@ def follow_index(request):
 def profile_follow(request, username):
     user = request.user
     author = get_object_or_404(User, username=username)
-    follower = Follow.objects.filter(author=author, user=user)
-    if user.is_authenticated != author:
-        if not follower:
-            Follow.objects.create(author=author, user=user)
-    return redirect('posts:profile', username)
+    if user != author:
+        Follow.objects.get_or_create(author=author, user=user)
+    return redirect(reverse('posts:profile', args=[username]))
 
 
 @login_required
@@ -142,6 +143,5 @@ def profile_unfollow(request, username):
     user = request.user
     author = get_object_or_404(User, username=username)
     follower = Follow.objects.filter(author=author, user=user)
-    if follower.exists():
-        follower.delete()
+    follower.delete()
     return redirect('posts:profile', username)

@@ -14,8 +14,8 @@ SECRET_KEY = 'i@d^dvf97)%t!!r_5uny#a^ec8ldr$4myryrfu4(ou&tje+%x)'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'www.linnaip.pythonanywhere.com',
-    'linnaip.pythonanywhere.com',
+    'www.Linnaip.pythonanywhere.com',
+    'Linnaip.pythonanywhere.com',
 ]
 
 # Кэширование
@@ -51,6 +51,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
